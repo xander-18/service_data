@@ -45,20 +45,17 @@ url_imagen = "https://scontent.fhuu1-1.fna.fbcdn.net/v/t39.30808-6/419116578_897
 
 
 # Función para cargar la imagen de fondo
-def cargar_imagen(url):
+def cargar_imagen_fondo(width, height):
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Lanza un error si la solicitud no fue exitosa
-        image_data = response.content
-        image = Image.open(io.BytesIO(image_data))
+        # Cargar imagen local
+        ruta_imagen = "nsm.png"  # Archivo en el mismo directorio que el script
+        image = Image.open(ruta_imagen)
+        # Redimensionar la imagen al tamaño de la ventana
+        image = image.resize((width, height), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(image)
-    except requests.exceptions.RequestException as e:
-        print(f"Error al cargar la imagen: {e}")
-        return None
     except Exception as e:
-        print(f"Error al procesar la imagen: {e}")
+        print(f"Error al cargar imagen de fondo: {e}")
         return None
-
 
 # Función para mostrar la hora en formato AM/PM
 def actualizar_reloj():
@@ -71,11 +68,11 @@ def actualizar_reloj():
 
 
 # Función para cargar la imagen de fondo
-def cargar_imagen(url):
-    response = requests.get(url)
-    image_data = response.content
-    image = Image.open(io.BytesIO(image_data))
-    return ImageTk.PhotoImage(image)
+# def cargar_imagen(url):
+#     response = requests.get(url)
+#     image_data = response.content
+#     image = Image.open(io.BytesIO(image_data))
+#     return ImageTk.PhotoImage(image)
 
 def abrir_formulario_asistencia_alumnos():
     asistencia_window = tk.Toplevel(root)
@@ -109,7 +106,7 @@ def abrir_formulario_asistencia_alumnos():
     tk.Label(
         frame, text="Sección:", font=("Helvetica", 10), bg="#D3E4CD", fg="#2E4A62"
     ).grid(row=1, column=0, sticky="e", padx=10, pady=5)
-    secciones = ["A", "B", "C", "D"]
+    secciones = ["A", "B", "C", "D", "E", "F", "G", "H", "I","J","K","L"]
     seccion_combobox = ttk.Combobox(frame, values=secciones, state="readonly")
     seccion_combobox.grid(row=1, column=1, padx=10, pady=5)
 
@@ -492,104 +489,108 @@ def abrir_aplicacion_usuario():
     root = tk.Tk()
     root.title("IEE Nuestra Señora de las Mercedes - Huánuco")
     root.geometry("800x600")
-    root.configure(bg="#D3E4CD")
+    root.configure(bg="#F7F9FB")  # Fondo claro
 
-    # Crear un frame para el título y el reloj
-    top_frame = tk.Frame(root, bg="#D3E4CD")
+    # Cargar icono y manejar excepciones
+    try:
+        root.iconbitmap('nsmschool.ico')
+    except:
+        print("No se pudo cargar el icono.")
+
+    # Fondo de imagen
+    imagen_fondo = cargar_imagen_fondo(800, 350)
+    fondo_label = tk.Label(root, image=imagen_fondo)
+    fondo_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # Frame superior
+    top_frame = tk.Frame(root, bg="#F7F9FB")
     top_frame.pack(side="top", fill="x", pady=10)
 
     # Título de la aplicación
     titulo_label = tk.Label(
         top_frame,
         text="Bienvenido a la Aplicación de Registro de Asistencia",
-        font=("Helvetica", 16, "bold"),
-        bg="#D3E4CD",
-        fg="#2E4A62",
+        font=("Arial", 18, "bold"),
+        bg="#F7F9FB",
+        fg="#1E3D59",
     )
     titulo_label.pack(pady=10)
 
     # Reloj
     global reloj_label
     reloj_label = tk.Label(
-        top_frame, text="", font=("Helvetica", 14), bg="#D3E4CD", fg="#2E4A62"
+        top_frame, text="", font=("Arial", 14), bg="#F7F9FB", fg="#1E3D59"
     )
     reloj_label.pack()
 
-    # Crear un frame para los botones en la parte baja
-    bottom_frame = tk.Frame(root, bg="#D3E4CD")
-    bottom_frame.pack(side="bottom", fill="x", pady=10)
+    # Frame de botones en la parte baja
+    bottom_frame = tk.Frame(root, bg="#F7F9FB")
+    bottom_frame.pack(side="bottom", fill="x", pady=20)
 
-    # Botón para registrar asistencia de alumnos
+    # Botones de asistencia
+    button_config = {
+        "font": ("Arial", 12, "bold"),
+        "bg": "#3C9D9B",
+        "fg": "white",
+        "width": 25,
+        "height": 2,
+    }
+
     btn_asistencia_alumnos = tk.Button(
         bottom_frame,
         text="Registrar Asistencia de Alumnos",
         command=abrir_formulario_asistencia_alumnos,
-        font=("Helvetica", 12, "bold"),
-        bg="#4CAF50",
-        fg="white",
+        **button_config
     )
     btn_asistencia_alumnos.pack(side="left", padx=10)
 
-    # Botón para registrar asistencia de auxiliares
     btn_asistencia_auxiliares = tk.Button(
         bottom_frame,
         text="Registrar Asistencia de Auxiliares",
         command=abrir_formulario_asistencia_auxiliares,
-        font=("Helvetica", 12, "bold"),
-        bg="#4CAF50",
-        fg="white",
+        **button_config
     )
     btn_asistencia_auxiliares.pack(side="left", padx=10)
 
-    # Botón especial solo para administradores, en la parte inferior derecha
+    # Botón para administradores
     if "admin" in usuarios:
         btn_admin_options = tk.Button(
             bottom_frame,
             text="Opciones de Administrador",
             command=abrir_panel_administrador,
-            font=("Helvetica", 12, "bold"),
-            bg="#FF5722",
+            font=("Arial", 12, "bold"),
+            bg="#D9534F",
             fg="white",
+            width=25,
+            height=2
         )
         btn_admin_options.pack(side="right", padx=10)
 
-    # Enlaces a redes sociales
-    social_frame = tk.Frame(root, bg="#D3E4CD")
+    # Redes sociales
+    social_frame = tk.Frame(root, bg="#F7F9FB")
     social_frame.pack(side="bottom", fill="x", pady=10)
 
-    fb_button = tk.Button(
-        social_frame,
-        text="Facebook",
-        command=abrir_facebook,
-        font=("Helvetica", 10, "bold"),
-        bg="#4267B2",
-        fg="white",
-    )
-    fb_button.pack(side="left", padx=5)
+    social_buttons = [
+        ("Facebook", "#4267B2", abrir_facebook),
+        ("Twitter", "#1DA1F2", abrir_twitter),
+        ("Instagram", "#C13584", abrir_instagram),
+    ]
 
-    twitter_button = tk.Button(
-        social_frame,
-        text="Twitter",
-        command=abrir_twitter,
-        font=("Helvetica", 10, "bold"),
-        bg="#1DA1F2",
-        fg="white",
-    )
-    twitter_button.pack(side="left", padx=5)
+    for name, color, command in social_buttons:
+        button = tk.Button(
+            social_frame,
+            text=name,
+            command=command,
+            font=("Arial", 10, "bold"),
+            bg=color,
+            fg="white",
+            width=10
+        )
+        button.pack(side="left", padx=5)
 
-    instagram_button = tk.Button(
-        social_frame,
-        text="Instagram",
-        command=abrir_instagram,
-        font=("Helvetica", 10, "bold"),
-        bg="#C13584",
-        fg="white",
-    )
-    instagram_button.pack(side="left", padx=5)
-
+    # Actualizar reloj
     actualizar_reloj()
+    root.imagen_fondo = imagen_fondo  # Para evitar que el fondo se elimine
     root.mainloop()
-
-
 # Iniciar la aplicación
 abrir_aplicacion_usuario()
