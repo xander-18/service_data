@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 import io
 import mysql.connector
+
 # Definición de variables globales
 usuarios = ["admin", "user1", "user2"]
 alumnos = ["Alumno 1", "Alumno 2", "Alumno 3"]
@@ -17,16 +18,15 @@ reportes = []
 
 try:
     conexion = mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="",
-        database="pruebas"
+        host="127.0.0.1", user="root", password="", database="pruebas"
     )
     cursor = conexion.cursor()
     print("se conecto correctamente")
 except mysql.connector.Error as err:
     print(f"Error no se conecto con la base de datos:{err}")
     conexion = None
+
+
 # Funciones para manejar enlaces a redes sociales
 def abrir_facebook():
     webbrowser.open("https://www.facebook.com/ieensmhco")
@@ -63,7 +63,9 @@ def cargar_imagen(url):
 # Función para mostrar la hora en formato AM/PM
 def actualizar_reloj():
     # hora_actual = datetime.now().strftime("%I:%M %p")  # Hora en formato AM/PM
-    hora_actual = datetime.now().strftime("%I:%M:%S %p")  # Hora en formato AM/PM con segundos
+    hora_actual = datetime.now().strftime(
+        "%I:%M:%S %p"
+    )  # Hora en formato AM/PM con segundos
     reloj_label.config(text=hora_actual)
     root.after(1000, actualizar_reloj)  # Actualiza cada segundo
 
@@ -75,95 +77,6 @@ def cargar_imagen(url):
     image = Image.open(io.BytesIO(image_data))
     return ImageTk.PhotoImage(image)
 
-
-# Función para abrir el formulario de registro de asistencia de alumnos
-
-def mostrar_alumnos():
-    if conexion is None:
-        messagebox.showerror("Error", "No hay conexión con la base de datos")
-        return
-        
-    alumnos_window = tk.Toplevel(root)
-    alumnos_window.title("Lista de Alumnos")
-    alumnos_window.geometry("800x600")
-    alumnos_window.configure(bg="#D3E4CD")
-
-    # Título
-    titulo_label = tk.Label(
-        alumnos_window,
-        text="Lista de Alumnos Registrados",
-        font=("Helvetica", 14, "bold"),
-        bg="#D3E4CD",
-        fg="#2E4A62"
-    )
-    titulo_label.pack(pady=10)
-
-    # Frame para el Treeview
-    frame = ttk.Frame(alumnos_window)
-    frame.pack(pady=20, padx=20, fill="both", expand=True)
-
-    # Crear Treeview
-    tree = ttk.Treeview(frame)
-    tree["columns"] = ("ID", "Nombre y Apellidos", "Grado", "Seccion")
-
-    # Configurar columnas
-    tree.column("#0", width=0, stretch=tk.NO)
-    tree.column("ID", anchor=tk.CENTER, width=100)
-    tree.column("Nombre y Apellidos", anchor=tk.W, width=150)
-    tree.column("Grado", anchor=tk.CENTER, width=100)
-    tree.column("Seccion", anchor=tk.CENTER, width=100)
-
-    # Configurar encabezados
-    tree.heading("#0", text="")
-    tree.heading("ID", text="ID", anchor=tk.CENTER)
-    tree.heading("Nombre y Apellidos", text="Nombre", anchor=tk.CENTER)
-    tree.heading("Grado", text="Grado", anchor=tk.CENTER)
-    tree.heading("Seccion", text="Sección", anchor=tk.CENTER)
-
-    # Agregar scrollbar
-    scrollbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-    scrollbar.pack(side="right", fill="y")
-    tree.configure(yscrollcommand=scrollbar.set)
-    tree.pack(fill="both", expand=True)
-
-    try:
-        # Ejecutar consulta SQL
-        cursor = conexion.cursor()
-        cursor.execute("""
-            SELECT id, nombres_apellidos, grado, seccion 
-            FROM estudiantes
-        """)
-        
-        # Insertar datos en el Treeview
-        for alumno in cursor.fetchall():
-            tree.insert("", "end", values=alumno)
-
-        # Mostrar total de alumnos
-        total_label = tk.Label(
-            alumnos_window,
-            text=f"Total de alumnos: {tree.get_children().__len__()}",
-            font=("Helvetica", 10),
-            bg="#D3E4CD",
-            fg="#2E4A62"
-        )
-        total_label.pack(pady=10)
-
-    except mysql.connector.Error as err:
-        messagebox.showerror("Error", f"Error al obtener los datos: {err}")
-def agregar_boton_mostrar_alumnos():
-    # Crear el botón en el bottom_frame existente
-    btn_mostrar_alumnos = tk.Button(
-        text="Mostrar Alumnos",
-        command=mostrar_alumnos,
-        font=("Helvetica", 12, "bold"),
-        bg="#2196F3",
-        fg="white"
-    )
-    btn_mostrar_alumnos.pack(side="left", padx=10)
-
-# Llamar a esta función después de crear bottom_frame en abrir_aplicacion_usuario()
-agregar_boton_mostrar_alumnos()     
-        
 def abrir_formulario_asistencia_alumnos():
     asistencia_window = tk.Toplevel(root)
     asistencia_window.title("Registrar Asistencia de Alumnos")
@@ -188,7 +101,7 @@ def abrir_formulario_asistencia_alumnos():
     tk.Label(
         frame, text="Grado:", font=("Helvetica", 10), bg="#D3E4CD", fg="#2E4A62"
     ).grid(row=0, column=0, sticky="e", padx=10, pady=5)
-    grados = ["Primero", "Segundo", "Tercero", "Cuarto", "Quinto"]
+    grados = ["1", "2", "3", "4", "5"]  # Cambiado a números para coincidir con la BD
     grado_combobox = ttk.Combobox(frame, values=grados, state="readonly")
     grado_combobox.grid(row=0, column=1, padx=10, pady=5)
 
@@ -204,8 +117,53 @@ def abrir_formulario_asistencia_alumnos():
     tk.Label(
         frame, text="Alumnos:", font=("Helvetica", 10), bg="#D3E4CD", fg="#2E4A62"
     ).grid(row=2, column=0, sticky="e", padx=10, pady=5)
-    lista_alumnos = ttk.Combobox(frame, values=alumnos, state="readonly")
+    lista_alumnos = ttk.Combobox(frame, state="readonly", width=40)  # Aumentado el ancho
     lista_alumnos.grid(row=2, column=1, padx=10, pady=5)
+
+    # Función para actualizar la lista de alumnos según el grado y sección
+    def actualizar_lista_alumnos(*args):
+        grado = grado_combobox.get()
+        seccion = seccion_combobox.get()
+        
+        if grado and seccion and conexion:
+            try:
+                cursor = conexion.cursor()
+                # Consulta SQL modificada para coincidir con la estructura de tu BD
+                query = """
+                    SELECT nombres_apellidos 
+                    FROM estudiantes 
+                    WHERE grado = %s AND seccion = %s
+
+                    UNION
+
+                    SELECT nombres_apellidos
+                    FROM estudiantes_tarde
+                    WHERE grado = %s AND seccion = %s
+
+                    ORDER BY nombres_apellidos;
+                """
+
+                cursor.execute(query, (grado, seccion, grado, seccion))
+                
+                # Obtener resultados y actualizar el combobox
+                alumnos = [row[0] for row in cursor.fetchall()]
+                if alumnos:
+                    lista_alumnos['values'] = alumnos
+                    lista_alumnos.set('')  # Limpiar selección actual
+                else:
+                    lista_alumnos['values'] = ['No hay alumnos en esta sección']
+                
+                # Imprimir información de depuración
+                print(f"Consultando alumnos para grado {grado} sección {seccion}")
+                print(f"Alumnos encontrados: {alumnos}")
+                
+            except mysql.connector.Error as err:
+                messagebox.showerror("Error", f"Error al obtener la lista de alumnos: {err}")
+                print(f"Error en la consulta: {err}")
+
+    # Vincular la función de actualización a los combobox de grado y sección
+    grado_combobox.bind('<<ComboboxSelected>>', actualizar_lista_alumnos)
+    seccion_combobox.bind('<<ComboboxSelected>>', actualizar_lista_alumnos)
 
     # Selección de fecha
     tk.Label(
@@ -226,13 +184,26 @@ def abrir_formulario_asistencia_alumnos():
     def marcar_asistencia():
         alumno = lista_alumnos.get()
         fecha = fecha_calendario.get_date()
-        if alumno:
-            fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            asistencia_info = f"Asistencia marcada para {alumno} el {fecha} a las {fecha_hora.split()[1]}"
-            info_label.config(text=asistencia_info)
-            reportes.append(asistencia_info)  # Guardar reporte de asistencia
+        if alumno and alumno != 'No hay alumnos en esta sección':
+            try:
+                cursor = conexion.cursor()
+                # Insertar asistencia en la base de datos con fecha y hora juntas
+                fecha_hora_ingreso = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute("""
+                    INSERT INTO asistencia (alumno, fecha_hora_ingreso) 
+                    VALUES (%s, %s)
+                """, (alumno, fecha_hora_ingreso))
+                conexion.commit()
+                
+                asistencia_info = f"Asistencia marcada para {alumno} el {fecha.strftime('%Y-%m-%d')} a las {fecha_hora_ingreso.split()[1]}"
+                info_label.config(text=asistencia_info)
+                reportes.append(asistencia_info)
+                messagebox.showinfo("Éxito", "Asistencia registrada correctamente")
+                
+            except mysql.connector.Error as err:
+                messagebox.showerror("Error", f"Error al registrar la asistencia: {err}")
         else:
-            messagebox.showerror("Error", "Por favor, selecciona un alumno")
+            messagebox.showerror("Error", "Por favor, selecciona un alumno válido")
 
     # Botón para registrar asistencia
     btn_registrar = tk.Button(
@@ -311,7 +282,6 @@ def abrir_formulario_asistencia_auxiliares():
         fg="white",
     )
     btn_registrar.grid(row=2, columnspan=2, pady=10)
-
 
 
 # Función para abrir el panel de opciones del administrador
